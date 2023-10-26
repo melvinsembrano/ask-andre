@@ -27,8 +27,12 @@ async def server_loop(q):
     pipe = pipeline("question-answering", model="deepset/roberta-base-squad2")
     while True:
         (jsonData, response_q) = await q.get()
-        out = pipe(question=jsonData["question"], context=jsonData["context"])
-        await response_q.put(out)
+        try:
+          out = pipe(question=jsonData["question"], context=jsonData["context"])
+          await response_q.put(out)
+        except Exception as e:
+          print(e)
+          await response_q.put({"error": "error processing question"})
 
 
 app = Starlette(
